@@ -1,7 +1,7 @@
-import { Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { State } from "../interfaces/state-values";
 import { ProductImage } from "./productImage.entity";
-import { Sell } from "./sell.entity";
+import { Sell } from "../../sell/entities/sell.entity";
 
 @Entity()
 export class Product {
@@ -19,6 +19,9 @@ export class Product {
 
     @Column('float')
     price: number;
+
+    @Column('text')
+    slug: string
 
     @Column('enum', {
         enum: State,
@@ -51,8 +54,19 @@ export class Product {
     @OneToOne(
         () => Sell,
         (sell) => sell.product,
-        {nullable: true}
+        { nullable: true }
     )
     sell: Sell
 
+    @BeforeInsert()
+    handleSlug() {
+        if (!this.slug) {
+            this.slug = this.title
+        }
+
+        this.slug = this.slug
+            .toLowerCase()
+            .replaceAll(" ", "_")
+            .replaceAll("'", "")
+    }
 }

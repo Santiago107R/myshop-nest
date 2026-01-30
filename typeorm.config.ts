@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm";
 import * as dotenv from "dotenv";
+import { join } from "path";
 
 dotenv.config();
 
@@ -13,6 +14,6 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     logging: stage === 'dev',
-    entities: ["src/**/entities/**/*.ts"],
-    migrations: ["src/migrations/*.ts"],
+    entities: [join(__dirname, 'src/**/entities/*.entity{.ts,.js}')],
+    migrations: [join(__dirname, 'src/migrations/*{.ts,.js}')],
 });

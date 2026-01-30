@@ -1,5 +1,5 @@
+import { Sell } from "../../sell/entities/sell.entity";
 import { Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Sell } from "./sell.entity";
 
 @Entity()
 export class Buyer {
