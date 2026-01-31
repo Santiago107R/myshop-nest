@@ -4,7 +4,7 @@ import { Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "t
 @Entity()
 export class Buyer {
 
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn() //TODO: documento
     id: number
 
     @Column('text')

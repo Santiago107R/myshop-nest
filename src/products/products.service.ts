@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -12,6 +12,7 @@ import { isUUID } from 'class-validator';
 @Injectable()
 export class ProductsService {
 
+  private readonly logger = new Logger()
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
@@ -19,6 +20,7 @@ export class ProductsService {
     @InjectRepository(ProductImage)
     private readonly productImageRepostory: Repository<ProductImage>,
 
+    private readonly dataSource: DataSource
   ) { }
 
   async create(createProductDto: CreateProductDto) {
@@ -35,7 +37,7 @@ export class ProductsService {
 
       return { ...product, images }
     } catch (error) {
-      console.log(error)
+      this.handleError(error)
     }
 
   }
@@ -69,18 +71,71 @@ export class ProductsService {
         .getOne()
     }
 
-    if (!product) throw new NotFoundException(`Product with id, title or slug "${term}" does not exist`)
+    if (!product) throw new NotFoundException(`Product with id, title or slug "${term}" not found`)
 
     return product
   }
 
-  update(id: string, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async findOnePlain(id: string) {
+    const {images = [], ...rest} = await this.findOne(id)
+
+    return {
+      ...rest,
+      images: images.map((image) => image.url),
+    }
+  }
+
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    const {images, ...toUpdate} = updateProductDto
+
+    const product = await this.productRepository.preload({
+      id,
+      ...toUpdate
+    })
+
+    if (!product) throw new NotFoundException(`Product with id "${id}" not found`)
+
+    // crear transaction 
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      if (images) {
+        await queryRunner.manager.delete(ProductImage, {product: {id}})
+        
+        product.images = images.map((image) => this.productImageRepostory.create({url: image}))
+      }
+
+      await queryRunner.manager.save(product);
+
+      await queryRunner.commitTransaction();
+
+      await queryRunner.release();
+
+      return this.findOne(id)
+    } catch (error) {
+
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+
+      this.handleError(error);
+    }
+
   }
 
   async remove(id: string) {
     const product = await this.findOne(id)
 
     await this.productRepository.remove(product)
+  }
+
+  private handleError(error: any) {
+    if (error.code === "23505")
+      throw new BadRequestException(error.detail)
+
+
+    this.logger.error(error)
+    throw new InternalServerErrorException('Unexpected error, check server logs')
   }
 }
