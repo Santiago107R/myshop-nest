@@ -6,6 +6,7 @@ import { CommonModule } from './common/common.module';
 import { SaleModule } from './sale/sale.module';
 import { BuyerModule } from './buyer/buyer.module';
 import { FilesModule } from './files/files.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -38,6 +39,8 @@ import { FilesModule } from './files/files.module';
     BuyerModule,
 
     FilesModule,
+
+    AuthModule,
   ],
 })
 export class AppModule { }
