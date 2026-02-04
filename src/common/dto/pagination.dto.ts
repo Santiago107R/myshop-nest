@@ -9,8 +9,11 @@ export class PaginationDto {
     limit?: number
 
     @IsOptional()
-    @IsString()
     @Min(0)
     @Type(() => Number)
     offset?: number
+
+    @IsOptional()
+    @IsString()
+    category?: string
 }

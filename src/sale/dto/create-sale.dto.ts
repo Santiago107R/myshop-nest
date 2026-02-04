@@ -1,6 +1,6 @@
 import { IsPositive, IsString, Min } from "class-validator";
 
-export class CreateSellDto {
+export class CreateSaleDto {
     @IsPositive()
     @Min(1)
     price: number;
@@ -9,6 +9,6 @@ export class CreateSellDto {
     productId: string;
 
     @IsPositive()
-    @Min(8)
+    @Min(1)
     buyerId: number;
 }

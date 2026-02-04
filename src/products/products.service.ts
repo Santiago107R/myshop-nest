@@ -43,17 +43,26 @@ export class ProductsService {
   }
 
   async findAll(paginationDto: PaginationDto) {
-    const { limit, offset } = paginationDto
+    const { limit = 10, offset = 0, category = 'all' } = paginationDto
 
-    const products = await this.productRepository.find({
+    const whereCondition: any = {}
+
+    if (category !== 'all') {
+      whereCondition.state = category
+    }
+
+    const [products, total] = await this.productRepository.findAndCount({
       take: limit,
       skip: offset,
+      where: whereCondition,
       relations: {
         images: true
       }
     })
 
-    return products;
+    const pages = Math.ceil(total / limit)
+
+    return { total, pages, products };
   }
 
   async findOne(term: string) {
@@ -77,7 +86,7 @@ export class ProductsService {
   }
 
   async findOnePlain(id: string) {
-    const {images = [], ...rest} = await this.findOne(id)
+    const { images = [], ...rest } = await this.findOne(id)
 
     return {
       ...rest,
@@ -86,7 +95,7 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    const {images, ...toUpdate} = updateProductDto
+    const { images, ...toUpdate } = updateProductDto
 
     const product = await this.productRepository.preload({
       id,
@@ -102,9 +111,9 @@ export class ProductsService {
 
     try {
       if (images) {
-        await queryRunner.manager.delete(ProductImage, {product: {id}})
-        
-        product.images = images.map((image) => this.productImageRepostory.create({url: image}))
+        await queryRunner.manager.delete(ProductImage, { product: { id } })
+
+        product.images = images.map((image) => this.productImageRepostory.create({ url: image }))
       }
 
       await queryRunner.manager.save(product);

@@ -3,7 +3,9 @@ import { ProductsModule } from './products/products.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CommonModule } from './common/common.module';
-import { SellModule } from './sell/sell.module';
+import { SaleModule } from './sale/sale.module';
+import { BuyerModule } from './buyer/buyer.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -31,7 +33,11 @@ import { SellModule } from './sell/sell.module';
 
     CommonModule,
 
-    SellModule,
+    SaleModule,
+
+    BuyerModule,
+
+    FilesModule,
   ],
 })
 export class AppModule { }
