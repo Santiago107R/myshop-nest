@@ -3,7 +3,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Res, UploadedFile, B
 import { ConfigService } from '@nestjs/config';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { fileFilter, fileNamer } from './helpers';
+import { fileFilter } from './helpers/fileFilter.helper';
 
 @Controller('files')
 export class FilesController {
